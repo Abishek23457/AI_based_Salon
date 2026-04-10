@@ -15,10 +15,9 @@ import asyncio
 
 # Import Gemini LLM
 try:
-    import google.generativeai as genai
+    from google import genai
     from config import settings
-    genai.configure(api_key=settings.GEMINI_API_KEY)
-    gemini_model = genai.GenerativeModel('gemini-pro')
+    client = genai.Client(api_key=settings.GEMINI_API_KEY)
     GEMINI_AVAILABLE = True
 except Exception as e:
     print(f"Warning: Gemini not available: {e}")

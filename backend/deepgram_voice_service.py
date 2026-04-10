@@ -73,7 +73,8 @@ class DeepgramVoiceService:
                 
                 if transcript and is_final and self.on_transcript:
                     logger.info(f"Transcript: {transcript}")
-                    self.on_transcript(transcript)
+                    # Create task to run the async callback
+                    asyncio.create_task(self.on_transcript(transcript))
                     
         except Exception as e:
             logger.error(f"Transcription receive error: {e}")
@@ -147,10 +148,11 @@ class DeepgramVoiceService:
     def play_audio(self, audio_data: bytes):
         """Play audio through speakers"""
         try:
+            # Deepgram TTS returns 24kHz audio, so use 24000
             stream = self.audio.open(
                 format=FORMAT,
                 channels=CHANNELS,
-                rate=RATE,
+                rate=24000,  # Deepgram TTS uses 24kHz
                 output=True
             )
             

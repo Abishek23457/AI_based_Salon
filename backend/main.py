@@ -3,13 +3,81 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse, FileResponse
 from fastapi.openapi.utils import get_openapi
 from fastapi.staticfiles import StaticFiles
+from contextlib import asynccontextmanager
 import models, schemas, os, time, datetime
 from database import engine
 
 # Create all database tables
 models.Base.metadata.create_all(bind=engine)
 
+# Lifespan context manager for startup/shutdown events
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    """Handle startup and shutdown events."""
+    # Startup
+    try:
+        from routers.reminders import start_reminder_scheduler
+        start_reminder_scheduler()
+    except Exception as e:
+        print(f"[Startup] Reminder scheduler failed: {e}")
+
+    # Seed a default salon for local development
+    from database import SessionLocal
+    db = SessionLocal()
+    try:
+        # Seed salon
+        existing = db.query(models.Salon).first()
+        if not existing:
+            salon = models.Salon(name="BookSmart Demo Salon", phone="+91 95138 86363")
+            db.add(salon)
+            db.commit()
+            print("[Startup] Seeded default salon (id=1)")
+            salon_id = salon.id
+        else:
+            salon_id = existing.id
+        
+        # Seed default services - ensure they exist for the salon
+        default_services = [
+            {"name": "Haircut", "price": 500.0, "duration_minutes": 30, "description": "Classic haircut with wash and styling"},
+            {"name": "Hair Coloring", "price": 2000.0, "duration_minutes": 90, "description": "Full hair coloring with premium products"},
+            {"name": "Facial", "price": 1500.0, "duration_minutes": 60, "description": "Deep cleansing facial treatment"},
+            {"name": "Manicure", "price": 800.0, "duration_minutes": 45, "description": "Professional manicure with nail care"},
+            {"name": "Pedicure", "price": 800.0, "duration_minutes": 45, "description": "Relaxing pedicure with foot massage"},
+            {"name": "Massage", "price": 1800.0, "duration_minutes": 60, "description": "Full body aromatherapy massage"},
+            {"name": "Bridal Makeup", "price": 5000.0, "duration_minutes": 120, "description": "Complete bridal makeup package"},
+            {"name": "Hair Styling", "price": 700.0, "duration_minutes": 45, "description": "Professional hair styling for events"},
+            {"name": "Waxing", "price": 600.0, "duration_minutes": 30, "description": "Full body waxing service"},
+            {"name": "Keratin Treatment", "price": 3500.0, "duration_minutes": 120, "description": "Hair smoothing keratin treatment"}
+        ]
+        
+        existing_services = db.query(models.Service).filter(models.Service.salon_id == salon_id).all()
+        existing_service_names = {s.name for s in existing_services}
+        
+        services_added = 0
+        for service_data in default_services:
+            if service_data["name"] not in existing_service_names:
+                service = models.Service(
+                    salon_id=salon_id,
+                    **service_data
+                )
+                db.add(service)
+                services_added += 1
+        
+        if services_added > 0:
+            db.commit()
+            print(f"[Startup] Added {services_added} default services")
+        else:
+            print("[Startup] Default services already exist")
+    finally:
+        db.close()
+
+    yield
+
+    # Shutdown (if needed in future)
+    print("[Shutdown] Application shutting down")
+
 app = FastAPI(
+    lifespan=lifespan,
     title="BookSmart AI - Intelligent Salon Management API",
     description="""
     Premium AI-powered backend for salon automation and client management.
@@ -330,7 +398,7 @@ async def texting_chat(request: schemas.ChatRequest):
         
         message = request.message
         customer_name = request.customer_name
-        conversation_history = [h.dict() for h in request.conversation_history]
+        conversation_history = [h.model_dump() for h in request.conversation_history]
         
         response = ai.generate_texting_response(message, customer_name, conversation_history)
         return response
@@ -623,29 +691,6 @@ async def api_status():
 
 # Initialize start time for uptime tracking
 api_status._start_time = time.time()
-
-
-@app.on_event("startup")
-def on_startup():
-    """Start the reminder scheduler + seed a default salon if DB is empty."""
-    try:
-        from routers.reminders import start_reminder_scheduler
-        start_reminder_scheduler()
-    except Exception as e:
-        print(f"[Startup] Reminder scheduler failed: {e}")
-
-    # Seed a default salon for local development
-    from database import SessionLocal
-    db = SessionLocal()
-    try:
-        existing = db.query(models.Salon).first()
-        if not existing:
-            salon = models.Salon(name="BookSmart Demo Salon", phone="+91 95138 86363")
-            db.add(salon)
-            db.commit()
-            print("[Startup] Seeded default salon (id=1)")
-    finally:
-        db.close()
 
 
 # Final check of root route (ensuring api_status is the primary one)

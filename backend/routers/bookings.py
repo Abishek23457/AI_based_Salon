@@ -61,7 +61,7 @@ def create_booking(booking: schemas.BookingCreate, db: Session = Depends(get_db)
             detail=f"Time slot conflict: an existing booking (#{conflict.id}) for {conflict.customer_name} overlaps with this time. Please choose a different time."
         )
 
-    db_booking = models.Booking(**booking.dict())
+    db_booking = models.Booking(**booking.model_dump())
     db.add(db_booking)
     db.commit()
     db.refresh(db_booking)
@@ -103,8 +103,63 @@ def create_booking(booking: schemas.BookingCreate, db: Session = Depends(get_db)
 
 
 @router.get("/", response_model=List[schemas.Booking])
-def get_bookings(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
-    return db.query(models.Booking).order_by(models.Booking.id.desc()).offset(skip).limit(limit).all()
+def get_bookings(salon_id: int = None, skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
+    query = db.query(models.Booking).order_by(models.Booking.id.desc())
+    if salon_id:
+        query = query.filter(models.Booking.salon_id == salon_id)
+    return query.offset(skip).limit(limit).all()
+
+@router.get("/check-availability")
+def check_availability(service_id: int, appointment_time: str, salon_id: int = None, db: Session = Depends(get_db)):
+    """Check if a time slot is available for booking"""
+    from datetime import datetime, timedelta
+    
+    try:
+        appt_time = datetime.fromisoformat(appointment_time.replace('Z', '+00:00'))
+    except:
+        raise HTTPException(status_code=400, detail="Invalid appointment time format")
+    
+    # Get service duration
+    service = db.query(models.Service).filter(models.Service.id == service_id).first()
+    if not service:
+        raise HTTPException(status_code=404, detail="Service not found")
+    
+    duration = service.duration_minutes or 30
+    end_time = appt_time + timedelta(minutes=duration)
+    
+    # Check for conflicting bookings
+    query = db.query(models.Booking).filter(
+        models.Booking.service_id == service_id,
+        models.Booking.status != "cancelled"
+    )
+    
+    if salon_id:
+        query = query.filter(models.Booking.salon_id == salon_id)
+    
+    # Check for overlapping time slots
+    conflicts = []
+    existing_bookings = query.all()
+    
+    for booking in existing_bookings:
+        booking_time = booking.appointment_time
+        booking_end = booking_time + timedelta(minutes=booking.service.duration_minutes or 30)
+        
+        # Check if time ranges overlap
+        if (appt_time < booking_end) and (end_time > booking_time):
+            conflicts.append({
+                "booking_id": booking.id,
+                "time": str(booking_time),
+                "customer": booking.customer_name
+            })
+    
+    return {
+        "available": len(conflicts) == 0,
+        "conflicts": conflicts,
+        "requested_time": str(appt_time),
+        "end_time": str(end_time),
+        "service": service.name,
+        "duration_minutes": duration
+    }
 
 
 @router.get("/{booking_id}", response_model=schemas.Booking)

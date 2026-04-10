@@ -7,14 +7,20 @@ from database import get_db
 
 router = APIRouter(prefix="/staff", tags=["Staff"])
 
-@router.get("/", response_model=list[schemas.Staff])
-def list_staff(salon_id: int = 1, db: Session = Depends(get_db)):
-    return db.query(models.Staff).filter(models.Staff.salon_id == salon_id).all()
+@router.get("/", response_model=List[schemas.Staff])
+def list_staff(salon_id: int = None, skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
+    query = db.query(models.Staff)
+    if salon_id:
+        query = query.filter(models.Staff.salon_id == salon_id)
+    return query.offset(skip).limit(limit).all()
 
 @router.get("/count", response_model=Dict[str, Any])
-def get_staff_count(salon_id: int = 1, db: Session = Depends(get_db)):
+def get_staff_count(salon_id: int = None, db: Session = Depends(get_db)):
     """Get current staff count and statistics"""
-    total_count = db.query(models.Staff).filter(models.Staff.salon_id == salon_id).count()
+    query = db.query(models.Staff)
+    if salon_id:
+        query = query.filter(models.Staff.salon_id == salon_id)
+    total_count = query.count()
     
     # Get active staff (with upcoming bookings)
     active_staff = db.query(models.Staff).filter(
@@ -31,19 +37,19 @@ def get_staff_count(salon_id: int = 1, db: Session = Depends(get_db)):
     }
 
 @router.post("/", response_model=schemas.Staff)
-def create_staff(payload: schemas.StaffCreate, salon_id: int = 1, db: Session = Depends(get_db)):
+def create_staff(staff: schemas.StaffCreate, salon_id: int = 1, db: Session = Depends(get_db)):
     # Check if staff member with same name already exists
     existing = db.query(models.Staff).filter(
         models.Staff.salon_id == salon_id,
-        models.Staff.name == payload.name
+        models.Staff.name == staff.name
     ).first()
     if existing:
         raise HTTPException(status_code=400, detail="Staff member with this name already exists")
     
-    s = models.Staff(salon_id=salon_id, **payload.model_dump())
-    db.add(s)
+    db_staff = models.Staff(salon_id=salon_id, **staff.model_dump())
+    db.add(db_staff)
     db.commit()
-    db.refresh(s)
+    db.refresh(db_staff)
     
     # Auto-ingest new staff data into AI
     try:
@@ -60,7 +66,7 @@ def create_staff(payload: schemas.StaffCreate, salon_id: int = 1, db: Session = 
     except Exception as e:
         print(f"Could not update AI index: {e}")
     
-    return s
+    return db_staff
 
 @router.put("/{staff_id}", response_model=schemas.Staff)
 def update_staff(staff_id: int, staff: schemas.StaffCreate, db: Session = Depends(get_db)):

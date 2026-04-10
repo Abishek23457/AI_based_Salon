@@ -74,141 +74,196 @@ async def voice_chat_agent():
         print("   GEMINI_API_KEY=your_key_here")
         return
     
-    print("\n🔌 Connecting to AI Agent...")
+    print("\n🔌 Connecting to AI Agent via OpenRouter...")
     
-    # Initialize Gemini client
-    try:
-        client = genai.Client(
-            api_key=settings.GEMINI_API_KEY,
-            http_options={'api_version': 'v1alpha'}
-        )
-    except Exception as e:
-        print(f"\n❌ Failed to initialize AI client: {e}")
+    # Use OpenRouter instead of Gemini Live API
+    import requests
+    
+    openrouter_api_key = settings.OPENROUTER_API_KEY if hasattr(settings, 'OPENROUTER_API_KEY') else os.getenv('OPENROUTER_API_KEY')
+    
+    if not openrouter_api_key:
+        print("\n❌ ERROR: OPENROUTER_API_KEY not found!")
+        print("   Add your OpenRouter API key to .env file:")
+        print("   OPENROUTER_API_KEY=your_key_here")
         return
     
-    model_id = "gemini-2.0-flash-live-001"  # Live model
+    # Deepgram API for STT and TTS
+    deepgram_api_key = settings.DEEPGRAM_API_KEY if hasattr(settings, 'DEEPGRAM_API_KEY') else os.getenv('DEEPGRAM_API_KEY')
     
-    config = {
-        "generation_config": {
-            "response_modalities": ["audio"],
-            "speech_config": {
-                "voice_config": {
-                    "prebuilt_voice_config": {
-                        "voice_name": "Aoede"  # Warm, friendly female voice
-                    }
-                }
-            }
-        },
-        "system_instruction": SYSTEM_PROMPT
-    }
+    if not deepgram_api_key:
+        print("\n❌ ERROR: DEEPGRAM_API_KEY not found!")
+        print("   Add your Deepgram API key to .env file:")
+        print("   DEEPGRAM_API_KEY=your_key_here")
+        return
     
     # Initialize PyAudio
     p = pyaudio.PyAudio()
     
     try:
-        # Start the live connection
-        async with client.aio.live.connect(model=model_id, config=config) as session:
-            print("\n✅ CONNECTED!")
-            print("🎤 LIVE - Start speaking now...\n")
-            print("You: ", end="", flush=True)
+        print("\n✅ CONNECTED!")
+        print("🎤 Voice Bot Ready - Start speaking now...\n")
+        
+        # Open microphone stream
+        mic_stream = p.open(
+            format=FORMAT,
+            channels=CHANNELS,
+            rate=RATE,
+            input=True,
+            frames_per_buffer=CHUNK
+        )
+        
+        # Open speaker stream
+        speaker_stream = p.open(
+            format=FORMAT,
+            channels=CHANNELS,
+            rate=OUTPUT_RATE,
+            output=True
+        )
+        
+        print("You: ", end="", flush=True)
+        
+        while True:
+            # Record audio
+            frames = []
+            silence_threshold = 40
+            silent_chunks = 0
+            min_speech_chunks = 10  # Require at least some speech
+            speech_chunks = 0
             
-            # Open microphone stream
-            mic_stream = p.open(
-                format=FORMAT,
-                channels=CHANNELS,
-                rate=RATE,
-                input=True,
-                frames_per_buffer=CHUNK
-            )
+            print("\nListening... (speak now)")
             
-            # Open speaker stream (Gemini outputs at 24kHz)
-            speaker_stream = p.open(
-                format=FORMAT,
-                channels=CHANNELS,
-                rate=OUTPUT_RATE,
-                output=True
-            )
-            
-            # Track if AI is speaking
-            ai_speaking = False
-            
-            async def send_microphone_audio():
-                """Continuously send mic audio to AI"""
-                while True:
-                    try:
-                        # Read audio from microphone
-                        data = mic_stream.read(CHUNK, exception_on_overflow=False)
-                        # Send to AI session
-                        await session.send(input=data)
-                        await asyncio.sleep(0.001)  # Small delay
-                    except Exception as e:
-                        if "Stream closed" not in str(e):
-                            print(f"\n[Mic Error: {e}]")
+            while True:
+                data = mic_stream.read(CHUNK, exception_on_overflow=False)
+                frames.append(data)
+                
+                # Check for silence (improved energy threshold)
+                audio_data = np.frombuffer(data, dtype=np.int16)
+                energy = np.abs(audio_data).mean()
+                
+                if energy > 300:  # Speech threshold (lowered)
+                    silent_chunks = 0
+                    speech_chunks += 1
+                else:
+                    silent_chunks += 1
+                    if silent_chunks > silence_threshold and speech_chunks > min_speech_chunks:
                         break
+                
+                # Max recording time (15 seconds)
+                if len(frames) > 1500:
+                    break
             
-            async def receive_ai_audio():
-                """Receive and play AI audio responses"""
-                nonlocal ai_speaking
-                while True:
+            # Convert audio to text using Deepgram STT
+            print("\nProcessing speech...")
+            
+            # Save audio to temp file for STT
+            import wave
+            temp_audio = "temp_audio.wav"
+            wf = wave.open(temp_audio, 'wb')
+            wf.setnchannels(CHANNELS)
+            wf.setsampwidth(p.get_sample_size(FORMAT))
+            wf.setframerate(RATE)
+            wf.writeframes(b''.join(frames))
+            wf.close()
+            
+            # Use Deepgram for STT
+            try:
+                with open(temp_audio, 'rb') as audio_file:
+                    stt_response = requests.post(
+                        f"https://api.deepgram.com/v1/listen?model=whisper-medium&language=en",
+                        headers={
+                            "Authorization": f"Token {deepgram_api_key}",
+                            "Content-Type": "audio/wav"
+                        },
+                        data=audio_file
+                    )
+                
+                if stt_response.status_code == 200:
+                    stt_result = stt_response.json()
                     try:
-                        async for message in session.receive():
-                            # Handle AI audio response
-                            if message.server_content and message.server_content.model_turn:
-                                for part in message.server_content.model_turn.parts:
-                                    if part.inline_data:
-                                        # Play audio through speakers
-                                        ai_speaking = True
-                                        speaker_stream.write(part.inline_data.data)
-                                        ai_speaking = False
-                                    
-                                    # Handle text (for debugging)
-                                    if part.text:
-                                        if not ai_speaking:
-                                            print(f"\nAI: {part.text}")
-                                            print("\nYou: ", end="", flush=True)
-                            
-                            # Handle tool calls (for booking functions)
-                            elif message.tool_call:
-                                print(f"\n[Tool Call: {message.tool_call}]")
-                                
-                            # Handle interruptions
-                            if message.server_content and message.server_content.interrupted:
-                                print("\n[You interrupted - stopping AI...]")
-                                speaker_stream.stop_stream()
-                                speaker_stream.start_stream()
-                                
+                        channels = stt_result.get('results', {}).get('channels', [])
+                        if channels and len(channels) > 0:
+                            alternatives = channels[0].get('alternatives', [])
+                            if alternatives and len(alternatives) > 0:
+                                user_input = alternatives[0].get('transcript', '')
+                            else:
+                                user_input = ""
+                        else:
+                            user_input = ""
+                        print(f"\nYou said: {user_input}")
                     except Exception as e:
-                        if "Stream closed" not in str(e):
-                            print(f"\n[AI Audio Error: {e}]")
-                        break
+                        print(f"\n❌ STT Parsing Error: {e}")
+                        user_input = ""
+                else:
+                    print(f"\n❌ STT Error: {stt_response.text}")
+                    user_input = ""
+                    
+            except Exception as e:
+                print(f"\n❌ STT Error: {e}")
+                user_input = ""
             
-            # Run both tasks concurrently
-            await asyncio.gather(
-                send_microphone_audio(),
-                receive_ai_audio()
-            )
+            # Clean up temp file
+            try:
+                os.remove(temp_audio)
+            except:
+                pass
+            
+            if not user_input or user_input.lower() == 'quit':
+                break
+            
+            # Call OpenRouter API
+            try:
+                response = requests.post(
+                    "https://openrouter.ai/api/v1/chat/completions",
+                    headers={
+                        "Authorization": f"Bearer {openrouter_api_key}",
+                        "Content-Type": "application/json"
+                    },
+                    json={
+                        "model": "openai/gpt-4o-mini",  # or any OpenRouter model
+                        "messages": [
+                            {"role": "system", "content": SYSTEM_PROMPT},
+                            {"role": "user", "content": user_input}
+                        ]
+                    }
+                )
+                
+                if response.status_code == 200:
+                    result = response.json()
+                    ai_response = result['choices'][0]['message']['content']
+                    print(f"\nAI: {ai_response}")
+                    
+                    # Convert AI response to speech using Windows SAPI
+                    print("\n🔊 Speaking...")
+                    try:
+                        import win32com.client
+                        speaker = win32com.client.Dispatch("SAPI.SpVoice")
+                        speaker.Speak(ai_response)
+                    except Exception as e:
+                        print(f"\n❌ TTS Error: {e}")
+                        # Fallback to print
+                        print(f"AI: {ai_response}")
+                    
+                    print("\nYou: ", end="", flush=True)
+                else:
+                    print(f"\n❌ API Error: {response.text}")
+                    
+            except Exception as e:
+                print(f"\n❌ Request Error: {e}")
             
     except KeyboardInterrupt:
         print("\n\n👋 Ending voice session...")
     except Exception as e:
-        print(f"\n\n❌ Connection Error: {e}")
-        print("\nTroubleshooting:")
-        print("1. Check if GEMINI_API_KEY is valid")
-        print("2. Ensure microphone and speakers are connected")
-        print("3. Try: pip install pyaudio google-genai")
+        print(f"\n\n❌ Error: {e}")
     finally:
         # Cleanup
         try:
             mic_stream.stop_stream()
             mic_stream.close()
-        except:
-            pass
-        try:
             speaker_stream.stop_stream()
             speaker_stream.close()
+            p.terminate()
         except:
             pass
-        p.terminate()
         print("\n✅ Session ended. Goodbye!")
         print("="*60)
 

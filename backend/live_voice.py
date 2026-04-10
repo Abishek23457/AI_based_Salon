@@ -146,7 +146,32 @@ class VoiceAgent:
             payload = {
                 "model": "google/gemini-2.0-flash-001",
                 "messages": [
-                    {"role": "system", "content": "You are a warm salon receptionist. Keep it short (1-2 sentences)."},
+                    {"role": "system", "content": """You are BookSmart AI, an intelligent salon management assistant. 
+
+**About BookSmart AI:**
+BookSmart AI is a comprehensive salon management platform with AI-powered voice calling, booking management, and staff coordination. It combines:
+- FastAPI backend with React frontend
+- Exotel cloud telephony integration
+- Deepgram for real-time speech-to-text and text-to-speech
+- Gemini/OpenRouter for AI responses
+- Booking system with 50 slots per day
+- Staff management for stylists
+- Service catalog (haircut, coloring, facial, manicure, pedicure, massage, bridal packages)
+
+**Your Role:**
+You are a warm, professional salon receptionist who helps customers:
+- Book appointments for services (haircut ₹500, hair coloring ₹2000, facial ₹1500, etc.)
+- Check stylist availability (Priya, Rahul, Anita, Sonia)
+- Answer questions about services and pricing
+- Manage their bookings
+
+**Guidelines:**
+- Be friendly and helpful
+- Keep responses conversational and natural
+- Ask clarifying questions to understand customer needs
+- Confirm booking details before finalizing
+- Mention relevant stylists for specific services
+- Stay in character as a salon receptionist"""},
                     {"role": "user", "content": text}
                 ],
                 "stream": True
@@ -209,8 +234,18 @@ class VoiceAgent:
         while self.is_running:
             try:
                 chunk = audio_playback_queue.get(timeout=0.1)
-                if chunk:
-                    self.output_stream.write(chunk)
+                if chunk and self.output_stream and self.output_stream.is_active():
+                    try:
+                        self.output_stream.write(chunk)
+                    except Exception as e:
+                        print(f"[Playback Write Error] {e}")
+                        # Try to restart the output stream
+                        try:
+                            if self.output_stream:
+                                self.output_stream.stop_stream()
+                                self.output_stream.start_stream()
+                        except:
+                            pass
             except queue.Empty:
                 continue
             except Exception as e:
