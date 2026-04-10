@@ -1,0 +1,19 @@
+version: "2"
+authtoken: YOUR_NGROK_AUTH_TOKEN
+
+tunnels:
+  backend:
+    proto: http
+    addr: 8000
+    host_header: localhost:8000
+    bind_tls: true
+    inspect: false
+    web_addr: 4040
+    
+  frontend:
+    proto: http
+    addr: 3000
+    host_header: localhost:3000
+    bind_tls: true
+    inspect: false
+    web_addr: 4041

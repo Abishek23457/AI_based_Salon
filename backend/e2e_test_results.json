@@ -1,0 +1,99 @@
+[
+  {
+    "test": "Backend Health Check",
+    "status": "PASS",
+    "result": {
+      "message": "BookSmart AI API v3.0 \u2014 All systems operational"
+    },
+    "timestamp": "2026-04-07T12:20:02.921413"
+  },
+  {
+    "test": "Frontend Accessibility",
+    "status": "PASS",
+    "result": "Frontend accessible",
+    "timestamp": "2026-04-07T12:20:02.924878"
+  },
+  {
+    "test": "API Proxy Test",
+    "status": "PASS",
+    "result": "API proxy working",
+    "timestamp": "2026-04-07T12:20:02.930732"
+  },
+  {
+    "test": "Texting AI Chat",
+    "status": "PASS",
+    "result": "Texting AI working correctly",
+    "timestamp": "2026-04-07T12:20:03.200392"
+  },
+  {
+    "test": "User Registration",
+    "status": "PASS",
+    "result": {
+      "username": "testuser_vtirp5",
+      "data": {
+        "access_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJ0ZXN0dXNlcl92dGlycDUiLCJzYWxvbl9pZCI6MTEsImV4cCI6MTc3NTYzMTAwM30.HsSWBa6hSXnCKarHK1mdr4AbASN00dyY49ZeycadKrw",
+        "token_type": "bearer",
+        "salon_id": 11,
+        "username": "testuser_vtirp5"
+      }
+    },
+    "timestamp": "2026-04-07T12:20:03.483855"
+  },
+  {
+    "test": "User Login",
+    "status": "PASS",
+    "result": {
+      "access_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJhZG1pbiIsInNhbG9uX2lkIjo3LCJleHAiOjE3NzU2MzEwMDN9.yMuUE5yVMgVeiLODbH_xHtb40__v0IBsAAgIxZa8LMM",
+      "token_type": "bearer",
+      "salon_id": 7,
+      "username": "admin"
+    },
+    "timestamp": "2026-04-07T12:20:03.747821"
+  },
+  {
+    "test": "Exotel Configuration",
+    "status": "PASS",
+    "result": {
+      "app_name": "booksmart_voice_app",
+      "app_url": "http://localhost:8000/exotel/incoming-call",
+      "status_url": "http://localhost:8000/exotel/call-status",
+      "method": "POST",
+      "voice_url": "ws://localhost:8000/exotel/ws/voice"
+    },
+    "timestamp": "2026-04-07T12:20:04.009290"
+  },
+  {
+    "test": "Staff Management",
+    "status": "PASS",
+    "result": {
+      "staff": [
+        {
+          "id": 1,
+          "name": "Sarah Johnson",
+          "role": "Hair Stylist",
+          "specialization": "Hair Cutting & Coloring"
+        },
+        {
+          "id": 2,
+          "name": "Maria Garcia",
+          "role": "Beauty Expert",
+          "specialization": "Facial & Makeup"
+        },
+        {
+          "id": 3,
+          "name": "David Chen",
+          "role": "Massage Therapist",
+          "specialization": "Swedish & Deep Tissue"
+        }
+      ],
+      "total": 3
+    },
+    "timestamp": "2026-04-07T12:20:04.273641"
+  },
+  {
+    "test": "Chat Conversation Flow",
+    "status": "PASS",
+    "result": "Conversation flow working correctly",
+    "timestamp": "2026-04-07T12:20:04.540410"
+  }
+]
