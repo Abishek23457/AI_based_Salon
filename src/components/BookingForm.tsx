@@ -42,7 +42,7 @@ export default function BookingForm() {
   const [errorMsg, setErrorMsg] = useState('');
 
   useEffect(() => {
-    fetch(`${API}/services/`)
+    fetch(`${API}/services/?salon_id=1`)
       .then(r => r.json())
       .then(data => {
         if (data.services) {
@@ -70,6 +70,7 @@ export default function BookingForm() {
           customer_phone: form.phone,
           customer_email: form.email || '',
           appointment_time: new Date(form.date).toISOString(),
+          salon_id: 1,
         }),
       });
       if (response.ok) {

@@ -1,4 +1,4 @@
-import { Routes, Route } from 'react-router-dom';
+import { Routes, Route, Navigate } from 'react-router-dom';
 import HomePage from './pages/HomePage';
 import DashboardPage from './pages/DashboardPage';
 import FeaturesPage from './pages/FeaturesPage';
@@ -23,6 +23,7 @@ export default function App() {
       <Route path="/staff" element={<StaffPage />} />
       <Route path="/test" element={<TestPage />} />
       <Route path="/testimonials" element={<TestimonialsPage />} />
+      <Route path="*" element={<Navigate to="/" />} />
     </Routes>
   );
 }

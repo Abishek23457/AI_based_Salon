@@ -25,6 +25,7 @@ export default function Dashboard() {
   const [currentMonth, setCurrentMonth] = useState(new Date());
   const [toast, setToast] = useState('');
   const [svcForm, setSvcForm] = useState({ name: '', price: '', duration_minutes: '', description: '' });
+  const [searchQuery, setSearchQuery] = useState('');
 
   const salonId = localStorage.getItem('booksmart_salon_id') || '1';
   const token = localStorage.getItem('booksmart_token');
@@ -48,8 +49,8 @@ export default function Dashboard() {
     try {
       const [salonRes, bookingsRes, servicesRes] = await Promise.all([
         authFetch(`${API}/auth/me`),
-        authFetch(`${API}/bookings/`),
-        authFetch(`${API}/services/`)
+        authFetch(`${API}/bookings/?salon_id=${salonId}`),
+        authFetch(`${API}/services/?salon_id=${salonId}`)
       ]);
 
       if (!salonRes.ok) { navigate('/login'); return; }
@@ -75,17 +76,19 @@ export default function Dashboard() {
     else loadData();
   }, [token, navigate, loadData]);
 
-  const addService = async (e: React.FormEvent) => {
+  const addService = async (e: React.FormEvent, staffIds: number[] = []) => {
     e.preventDefault();
     const res = await authFetch(`${API}/services/`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ ...svcForm, salon_id: parseInt(salonId) })
+      body: JSON.stringify({ ...svcForm, salon_id: parseInt(salonId), staff_ids: staffIds })
     });
     if (res.ok) {
       showToast('Service added ✓');
       setSvcForm({ name: '', price: '', duration_minutes: '', description: '' });
       loadData();
+    } else {
+      showToast('Failed to add service');
     }
   };
 
@@ -167,7 +170,12 @@ export default function Dashboard() {
            <div className="flex gap-4">
               <div className="w-48 bg-white border border-gray-100 rounded-full px-4 py-2 hidden md:flex items-center gap-2 shadow-sm">
                 <Search className="w-4 h-4 text-gray-300" />
-                <input placeholder="Quick search..." className="text-xs bg-transparent outline-none w-full font-medium" />
+                <input 
+                  placeholder="Quick search..." 
+                  value={searchQuery}
+                  onChange={e => setSearchQuery(e.target.value)}
+                  className="text-xs bg-transparent outline-none w-full font-medium" 
+                />
               </div>
               <button className="relative p-3 bg-white border border-gray-100 rounded-full shadow-sm hover:bg-gray-50 transition">
                 <Bell className="w-5 h-5 text-[#2C3E35]" />
@@ -204,6 +212,9 @@ export default function Dashboard() {
                 setSvcForm={setSvcForm} 
                 addService={addService} 
                 deleteService={deleteService} 
+                salonId={salonId}
+                authFetch={authFetch}
+                showToast={showToast}
               />
             )}
 

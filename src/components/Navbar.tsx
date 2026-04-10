@@ -72,11 +72,10 @@ export default function Navbar() {
                 whileTap={{ scale: 0.95 }}
               >
                 <Link 
-                  to="/staff" 
-                  className="text-sm font-bold text-gray-700 hover:text-emerald-600 transition-colors flex items-center gap-2"
+                  to="/login" 
+                  className="text-sm font-bold text-gray-700 hover:text-emerald-600 transition-colors"
                 >
-                  <Phone className="w-4 h-4" />
-                  Staff Management
+                  Admin Login
                 </Link>
               </motion.div>
               
@@ -84,9 +83,9 @@ export default function Navbar() {
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
               >
-                <a href="tel:+919513886363" className="flex items-center gap-2 px-6 py-3 bg-[#E9EFE6] text-[#2C3E35] rounded-full font-bold hover:bg-[#DCE6D9] transition shadow-sm group">
+                <a href="tel:9513886363" className="flex items-center gap-2 px-6 py-3 bg-[#E9EFE6] text-[#2C3E35] rounded-full font-bold hover:bg-[#DCE6D9] transition shadow-sm group">
                   <Phone className="w-4 h-4 group-hover:rotate-12 transition-transform" />
-                  +91 95138 86363
+                  9513886363
                 </a>
               </motion.div>
               
@@ -205,7 +204,7 @@ export default function Navbar() {
                 
                 {/* Footer */}
                 <div className="pt-8 border-t border-white/10 text-center text-xs font-bold text-gray-500 uppercase tracking-widest">
-                  Direct Contact: +91 95138 86363 • 2026 BookSmart AI
+                  Direct Contact: 9513886363 • 2026 BookSmart AI
                   <p className="mt-1">Elevating beauty businesses</p>
                 </div>
               </div>

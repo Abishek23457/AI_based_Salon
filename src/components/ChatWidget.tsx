@@ -42,18 +42,13 @@ export default function ChatWidget() {
 
     try {
       console.log('Sending message:', userMsg);
-      // Use texting AI that understands user flow and natural conversation
-      const response = await fetch(`${API_URL}/texting-chat`, {
+      // Use intelligent chat endpoint
+      const response = await fetch(`${API_URL}/intelligent-chat`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
           message: userMsg,
-          customer_name: "Customer", // You can get this from user profile
-          conversation_history: messages.map(msg => ({
-            role: msg.role,
-            content: msg.content,
-            timestamp: new Date().toISOString()
-          }))
+          customer_name: "Customer"
         })
       });
       
@@ -83,7 +78,7 @@ export default function ChatWidget() {
           <div className="bg-[#2C3E35] text-white p-4 flex justify-between items-center rounded-t-3xl">
             <div>
               <h3 className="font-bold text-lg">Growth Assistant</h3>
-              <p className="text-sm font-medium">Direct line: +91 95138 86363</p>
+              <p className="text-sm font-medium">Direct line: 9513886363</p>
             </div>
             <button 
               key="chat-close"
