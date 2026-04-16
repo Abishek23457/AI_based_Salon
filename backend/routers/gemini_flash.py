@@ -9,7 +9,7 @@ import base64
 from gemini_2_5_flash_audio import gemini_25_flash
 from gemini_3_flash_live import gemini_3_flash_live
 
-router = APIRouter(prefix="/gemini-flash", tags=["Gemini Flash"])
+router = APIRouter(tags=["Gemini Flash"])
 
 class ChatRequest(BaseModel):
     message: str

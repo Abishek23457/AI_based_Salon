@@ -20,8 +20,7 @@ class Gemini25FlashAudio:
         self.model = "gemini-2.5-flash-preview-04-17"
         
         if self.api_key:
-            genai.configure(api_key=self.api_key)
-            self.client = genai.Client()
+            self.client = genai.Client(api_key=self.api_key)
             logger.info("[Gemini 2.5 Flash] Initialized successfully")
         else:
             logger.warning("[Gemini 2.5 Flash] No API key configured")
@@ -172,13 +171,11 @@ Keep responses concise and friendly.
             }
         
         try:
-            # Build conversation
+            # Build conversation as simple strings
             contents = []
             
             # Add system prompt
-            contents.append(types.Content(
-                role="user",
-                parts=[types.Part.from_text("""
+            contents.append("""
 You are BookSmart AI, a friendly salon assistant for BookSmart salon booking system.
 
 Your role:
@@ -199,23 +196,15 @@ Location: Main Street, City Center
 Hours: 9 AM - 8 PM daily
 
 Be warm, professional, and helpful!
-""")]
-            ))
+""")
             
             # Add conversation history
             if conversation_history:
                 for msg in conversation_history:
-                    role = "user" if msg.get("role") == "user" else "model"
-                    contents.append(types.Content(
-                        role=role,
-                        parts=[types.Part.from_text(msg.get("content", ""))]
-                    ))
+                    contents.append(msg.get("content", ""))
             
             # Add current message
-            contents.append(types.Content(
-                role="user",
-                parts=[types.Part.from_text(message)]
-            ))
+            contents.append(message)
             
             # Generate response with audio
             response = self.client.models.generate_content(

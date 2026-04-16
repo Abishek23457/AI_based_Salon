@@ -17,12 +17,11 @@ class Gemini3FlashLive:
     def __init__(self):
         self.api_key = getattr(settings, 'GEMINI_API_KEY', '')
         self.client = None
-        self.model = "gemini-3.0-flash-live-preview"
+        self.model = "gemini-2.5-flash"
         self.live_sessions = {}
         
         if self.api_key:
-            genai.configure(api_key=self.api_key)
-            self.client = genai.Client()
+            self.client = genai.Client(api_key=self.api_key)
             logger.info("[Gemini 3 Flash Live] Initialized successfully")
         else:
             logger.warning("[Gemini 3 Flash Live] No API key configured")
@@ -94,13 +93,11 @@ class Gemini3FlashLive:
             # Add user message to history
             session["messages"].append({"role": "user", "content": message})
             
-            # Build conversation
+            # Build conversation as simple strings
             contents = []
             
             # System prompt
-            contents.append(types.Content(
-                role="user",
-                parts=[types.Part.from_text(f"""
+            contents.append(f"""
 You are BookSmart AI, a helpful salon assistant.
 Context: {session.get('context', '')}
 
@@ -111,16 +108,11 @@ Help customers with:
 - General salon inquiries
 
 Be friendly, concise, and helpful.
-""")]
-            ))
+""")
             
             # Add message history
             for msg in session["messages"][-5:]:  # Last 5 messages
-                role = "user" if msg["role"] == "user" else "model"
-                contents.append(types.Content(
-                    role=role,
-                    parts=[types.Part.from_text(msg["content"])]
-                ))
+                contents.append(msg["content"])
             
             # Stream response
             response = self.client.models.generate_content_stream(
@@ -173,13 +165,11 @@ Be friendly, concise, and helpful.
         session = self.live_sessions[session_id]
         
         try:
-            # Build conversation
+            # Build conversation as simple strings
             contents = []
             
             # System prompt
-            contents.append(types.Content(
-                role="user",
-                parts=[types.Part.from_text(f"""
+            contents.append(f"""
 You are BookSmart AI, a helpful salon assistant for BookSmart booking system.
 
 Services:
@@ -194,22 +184,14 @@ Location: Main Street, City Center
 Hours: 9 AM - 8 PM daily
 
 Help customers book appointments and answer questions naturally and friendly.
-""")]
-            ))
+""")
             
             # Add conversation history
             for msg in session["messages"][-10:]:  # Last 10 messages
-                role = "user" if msg["role"] == "user" else "model"
-                contents.append(types.Content(
-                    role=role,
-                    parts=[types.Part.from_text(msg["content"])]
-                ))
+                contents.append(msg["content"])
             
             # Add current message
-            contents.append(types.Content(
-                role="user",
-                parts=[types.Part.from_text(message)]
-            ))
+            contents.append(message)
             
             # Generate response
             response = self.client.models.generate_content(

@@ -7,7 +7,7 @@ from typing import Optional
 import json
 from datetime import datetime
 
-router = APIRouter(prefix="/chat", tags=["Chat"])
+router = APIRouter(tags=["Chat"])
 
 class ChatMessage(BaseModel):
     message: str
