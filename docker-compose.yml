@@ -1,0 +1,43 @@
+version: '3.8'
+
+services:
+  db:
+    image: postgres:15-alpine
+    container_name: booksmart_db
+    environment:
+      POSTGRES_USER: booksmart
+      POSTGRES_PASSWORD: booksmart_password
+      POSTGRES_DB: booksmart_ai
+    ports:
+      - "5432:5432"
+    volumes:
+      - booksmart_data:/var/lib/postgresql/data
+
+  backend:
+    build: ./backend
+    container_name: booksmart_backend
+    ports:
+      - "8000:8000"
+    environment:
+      # Overriding standard localhost for the internal Docker DNS 'db'
+      - DATABASE_URL=postgresql://booksmart:booksmart_password@db:5432/booksmart_ai
+      - TWILIO_ACCOUNT_SID=${TWILIO_ACCOUNT_SID:-mock}
+      - TWILIO_AUTH_TOKEN=${TWILIO_AUTH_TOKEN:-mock}
+      - TWILIO_PHONE_NUMBER=${TWILIO_PHONE_NUMBER:-mock}
+      - GEMINI_API_KEY=${GEMINI_API_KEY:-mock}
+    depends_on:
+      - db
+    volumes:
+      # Mount the FAISS vector index map to persist RAG training data
+      - ./backend/vector_indexes:/app/vector_indexes
+
+  frontend:
+    build: ./frontend
+    container_name: booksmart_frontend
+    ports:
+      - "3000:3000"
+    depends_on:
+      - backend
+
+volumes:
+  booksmart_data:
