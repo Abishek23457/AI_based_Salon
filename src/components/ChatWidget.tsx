@@ -42,14 +42,13 @@ export default function ChatWidget() {
 
     try {
       console.log('Sending message:', userMsg);
-      // Use Gemini Flash Live API (unlimited requests)
-      const response = await fetch(`${API_URL}/api/gemini-flash/chat`, {
+      // Use fallback chat receptionist endpoint
+      const response = await fetch(`${API_URL}/chat-receptionist/receptionist`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
           message: userMsg,
-          session_id: "default",
-          conversation_history: messages.map(m => ({ role: m.role, content: m.content }))
+          customer_name: "Customer"
         })
       });
       
@@ -57,7 +56,7 @@ export default function ChatWidget() {
       const data = await response.json();
       console.log('Response data:', data);
       
-      setMessages(prev => [...prev, { role: 'ai', content: data.response || data.text }]);
+      setMessages(prev => [...prev, { role: 'ai', content: data.ai_response }]);
     } catch (error) {
       console.error('Chat error:', error);
       setMessages(prev => [...prev, { role: 'ai', content: "Sorry, I'm having trouble connecting. Please try again or call us at +91-9876543210 for immediate assistance." }]);
