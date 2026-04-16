@@ -15,7 +15,7 @@ def test_endpoint(name, method, endpoint, expected_status=200, payload=None):
         
         success = r.status_code == expected_status
         status = "PASS" if success else f"FAIL ({r.status_code})"
-        return True, status, r.json() if success else None
+        return success, status, r.json() if success else None
     except Exception as e:
         return False, f"ERROR: {str(e)[:50]}", None
 

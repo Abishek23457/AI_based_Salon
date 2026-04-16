@@ -147,7 +147,7 @@ app.mount("/test-tools", StaticFiles(directory=os.path.join(os.path.dirname(__fi
 
 # ─── Import Routers ──────────────────────────────────────────────────────────
 from routers import services, bookings, chat, staff, analytics, reminders, auth, reviews, payments, realtime, browser_voice
-from routers import whatsapp, giftcards, loyalty, waitlist, recurring, reviewsapi, advanced_analytics
+from routers import whatsapp, giftcards, loyalty, waitlist, recurring, reviewsapi, advanced_analytics, gemini_flash
 from exotel_voice_handler import router as exotel_voice_router
 from chat_agent_robust import router as chat_agent_router
 from staff_management_simple import router as staff_management_router
@@ -253,6 +253,10 @@ tags_metadata = [
         "name": "Advanced Analytics",
         "description": "Revenue dashboard, staff performance, and AI insights",
     },
+    {
+        "name": "Gemini Flash",
+        "description": "Gemini 2.5 Flash Audio and Gemini 3 Flash Live with unlimited requests",
+    },
 ]
 
 def custom_openapi():
@@ -317,6 +321,9 @@ app.include_router(waitlist.router, prefix="/api/waitlist", tags=["Waitlist"])
 app.include_router(recurring.router, prefix="/api/recurring", tags=["Recurring Bookings"])
 app.include_router(reviewsapi.router, prefix="/api/reviews-system", tags=["Reviews"])
 app.include_router(advanced_analytics.router, prefix="/api/analytics", tags=["Advanced Analytics"])
+
+# Gemini Flash Models (Unlimited Requests)
+app.include_router(gemini_flash.router, prefix="/api/gemini-flash", tags=["Gemini Flash"])
 
 # Simple chat endpoint that always works
 @app.post("/simple-chat")
