@@ -147,6 +147,7 @@ app.mount("/test-tools", StaticFiles(directory=os.path.join(os.path.dirname(__fi
 
 # ─── Import Routers ──────────────────────────────────────────────────────────
 from routers import services, bookings, chat, staff, analytics, reminders, auth, reviews, payments, realtime, browser_voice
+from routers import whatsapp, giftcards, loyalty, waitlist, recurring, reviewsapi, advanced_analytics
 from exotel_voice_handler import router as exotel_voice_router
 from chat_agent_robust import router as chat_agent_router
 from staff_management_simple import router as staff_management_router
@@ -220,6 +221,38 @@ tags_metadata = [
         "name": "Intelligent AI",
         "description": "Advanced AI that understands salon business and user needs",
     },
+    {
+        "name": "Texting AI",
+        "description": "AI that understands texting flow and natural conversation patterns",
+    },
+    {
+        "name": "WhatsApp",
+        "description": "WhatsApp Business API for messaging and notifications",
+    },
+    {
+        "name": "Gift Cards",
+        "description": "Digital gift card purchase and redemption system",
+    },
+    {
+        "name": "Loyalty Program",
+        "description": "Customer loyalty points and rewards management",
+    },
+    {
+        "name": "Waitlist",
+        "description": "Waitlist management for full booking slots",
+    },
+    {
+        "name": "Recurring Bookings",
+        "description": "Weekly, bi-weekly, and monthly recurring appointments",
+    },
+    {
+        "name": "Reviews",
+        "description": "Customer reviews and ratings system",
+    },
+    {
+        "name": "Advanced Analytics",
+        "description": "Revenue dashboard, staff performance, and AI insights",
+    },
 ]
 
 def custom_openapi():
@@ -275,6 +308,15 @@ app.include_router(chat_receptionist_router, prefix="/chat-receptionist", tags=[
 app.include_router(intelligent_ai_router, prefix="/intelligent-ai", tags=["Intelligent AI"])
 app.include_router(texting_ai_router, prefix="/texting-ai", tags=["Texting AI"])
 app.include_router(browser_voice.router, prefix="/api/voice", tags=["Browser Voice"])
+
+# New Feature Routers
+app.include_router(whatsapp.router, prefix="/api/whatsapp", tags=["WhatsApp"])
+app.include_router(giftcards.router, prefix="/api/gift-cards", tags=["Gift Cards"])
+app.include_router(loyalty.router, prefix="/api/loyalty", tags=["Loyalty Program"])
+app.include_router(waitlist.router, prefix="/api/waitlist", tags=["Waitlist"])
+app.include_router(recurring.router, prefix="/api/recurring", tags=["Recurring Bookings"])
+app.include_router(reviewsapi.router, prefix="/api/reviews-system", tags=["Reviews"])
+app.include_router(advanced_analytics.router, prefix="/api/analytics", tags=["Advanced Analytics"])
 
 # Simple chat endpoint that always works
 @app.post("/simple-chat")
@@ -663,7 +705,15 @@ async def api_status():
             "payments": "demo_mode",
             "analytics": "active",
             "realtime": "active",
-            "reminders": "active"
+            "reminders": "active",
+            "whatsapp": "active",
+            "gift_cards": "active",
+            "loyalty_program": "active",
+            "waitlist": "active",
+            "recurring_bookings": "active",
+            "reviews_system": "active",
+            "advanced_analytics": "active",
+            "multi_language": "active"
         },
         "services": {
             "database": "connected",
