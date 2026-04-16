@@ -42,13 +42,14 @@ export default function ChatWidget() {
 
     try {
       console.log('Sending message:', userMsg);
-      // Use intelligent chat endpoint
-      const response = await fetch(`${API_URL}/intelligent-chat`, {
+      // Use Gemini Flash Live API (unlimited requests)
+      const response = await fetch(`${API_URL}/api/gemini-flash/chat`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
           message: userMsg,
-          customer_name: "Customer"
+          session_id: "default",
+          conversation_history: messages.map(m => ({ role: m.role, content: m.content }))
         })
       });
       
@@ -56,10 +57,10 @@ export default function ChatWidget() {
       const data = await response.json();
       console.log('Response data:', data);
       
-      setMessages(prev => [...prev, { role: 'ai', content: data.response }]);
+      setMessages(prev => [...prev, { role: 'ai', content: data.response || data.text }]);
     } catch (error) {
       console.error('Chat error:', error);
-      setMessages(prev => [...prev, { role: 'ai', content: "Sorry, I'm having trouble connecting. Please call us at +91-9876543210 for immediate assistance." }]);
+      setMessages(prev => [...prev, { role: 'ai', content: "Sorry, I'm having trouble connecting. Please try again or call us at +91-9876543210 for immediate assistance." }]);
     }
   };
 
