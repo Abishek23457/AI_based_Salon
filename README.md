@@ -469,3 +469,4 @@ This project is licensed under the MIT License.
 For support, email support@booksmart.ai or join our Slack channel.
 
 **Happy Coding! 🎉**
+>>>>>>> 88d9dbdb85ec253ec0c8f22f8361b4e0692069fb
