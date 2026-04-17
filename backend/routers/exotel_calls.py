@@ -14,7 +14,7 @@ import xml.etree.ElementTree as ET
 from datetime import datetime
 import logging
 
-router = APIRouter(prefix="/exotel", tags=["Exotel AI Calling"])
+router = APIRouter(tags=["Exotel AI Calling"])
 logger = logging.getLogger(__name__)
 
 

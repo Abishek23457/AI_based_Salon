@@ -148,6 +148,7 @@ app.mount("/test-tools", StaticFiles(directory=os.path.join(os.path.dirname(__fi
 # ─── Import Routers ──────────────────────────────────────────────────────────
 from routers import services, bookings, chat, staff, analytics, reminders, auth, reviews, payments, realtime, browser_voice
 from routers import whatsapp, giftcards, loyalty, waitlist, recurring, reviewsapi, advanced_analytics, gemini_flash
+from routers.exotel_calls import router as exotel_calls_router
 from exotel_voice_handler import router as exotel_voice_router
 from chat_agent_robust import router as chat_agent_router
 from staff_management_simple import router as staff_management_router
@@ -305,6 +306,7 @@ app.include_router(reminders.router, tags=["Reminders"])
 app.include_router(reviews.router, tags=["Reviews"])
 app.include_router(payments.router, tags=["Payments"])
 app.include_router(realtime.router, prefix="/realtime", tags=["Realtime"])
+app.include_router(exotel_calls_router, prefix="/exotel", tags=["Exotel AI Calling"])
 app.include_router(exotel_voice_router, prefix="/exotel", tags=["Voice AI"])
 app.include_router(chat_agent_router, prefix="/chat-agent", tags=["Chat Agent"])  # Chat agent router registered
 app.include_router(staff_management_router, prefix="/staff-management", tags=["Staff Management"])
@@ -779,3 +781,4 @@ if os.path.exists(FRONTEND_PATH):
         return FileResponse(os.path.join(FRONTEND_PATH, "index.html"))
 else:
     print(f"WARNING: Frontend path {FRONTEND_PATH} not found. Static files will not be served.")
+ 
