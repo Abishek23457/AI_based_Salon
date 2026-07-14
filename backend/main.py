@@ -96,8 +96,10 @@ IS_PRODUCTION = os.getenv("ENVIRONMENT", "development").lower() == "production"
 
 if IS_PRODUCTION:
     ALLOWED_ORIGINS = [
-        "https://yourdomain.com",
-        "https://app.yourdomain.com",
+        "https://ai-based-salon.onrender.com",
+        "https://booksmart-frontend.onrender.com",
+        "https://qwertyuiolkjhg.dpdns.org",
+        "https://www.qwertyuiolkjhg.dpdns.org",
     ]
 else:
     # Allow localhost and any ngrok tunnel for testing
