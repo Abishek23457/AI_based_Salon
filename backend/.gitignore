@@ -42,3 +42,9 @@ wheels/
 # Temporary files
 *.zip
 *.tmp
+
+# Test artifacts (may contain tokens/data)
+e2e_test_results.json
+*_test_results.json
+*.db
+recordings/
