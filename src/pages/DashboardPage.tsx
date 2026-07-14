@@ -125,8 +125,8 @@ export default function Dashboard() {
       {/* Sidebar */}
       <aside className="w-72 bg-[#1A2520] text-emerald-50 hidden lg:flex flex-col p-8 fixed h-full shadow-2xl">
         <div className="flex items-center gap-4 mb-12 px-4 py-6 bg-white/5 rounded-[2rem] border border-white/5">
-          <div className="w-12 h-12 bg-gradient-to-br from-emerald-400 to-teal-500 rounded-2xl flex items-center justify-center shadow-lg">
-            <Sparkles className="w-6 h-6 text-white" />
+          <div className="w-12 h-12 bg-white rounded-2xl flex items-center justify-center shadow-lg overflow-hidden">
+            <img src="/favicon.png" alt="Logo" className="w-10 h-10 object-contain" />
           </div>
           <div className="flex flex-col">
             <span className="font-serif text-lg font-bold">BookSmart</span>

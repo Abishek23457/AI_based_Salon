@@ -2,6 +2,8 @@ import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Mic, MicOff, X, Volume2, Loader2, Sparkles, MessageCircle } from 'lucide-react';
 
+import { API_URL } from '../../api';
+
 interface BrowserVoiceModalProps {
   onClose: () => void;
   salonId?: number;
@@ -35,8 +37,8 @@ export default function BrowserVoiceModal({ onClose, salonId = 1 }: BrowserVoice
       setStatus('connecting');
       
       // 1. Connect WebSocket
-      const API_URL = 'localhost:8000'; // Hardcoded for simplicity as seen in api.ts
-      const socket = new WebSocket(`ws://${API_URL}/ws/browser`);
+      const wsUrl = API_URL.replace(/^http/, 'ws');
+      const socket = new WebSocket(`${wsUrl}/ws/browser`);
       wsRef.current = socket;
 
       socket.onopen = () => {

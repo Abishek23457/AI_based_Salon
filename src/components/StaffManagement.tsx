@@ -44,7 +44,7 @@ export default function StaffManagement() {
 
   const fetchStats = async () => {
     try {
-      const response = await fetch('http://localhost:8000/staff/count');
+      const response = await fetch(`${API_URL}/staff/count`);
       const data = await response.json();
       setStats(data);
     } catch {
@@ -79,7 +79,7 @@ export default function StaffManagement() {
     if (!editingStaff) return;
     
     try {
-      const response = await fetch(`http://localhost:8000/staff/${editingStaff.id}`, {
+      const response = await fetch(`${API_URL}/staff/${editingStaff.id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ name: editingStaff.name, working_hours: editingStaff.working_hours }),
@@ -98,7 +98,7 @@ export default function StaffManagement() {
 
   const handleDeleteStaff = async (id: number) => {
     try {
-      const response = await fetch(`http://localhost:8000/staff/${id}`, {
+      const response = await fetch(`${API_URL}/staff/${id}`, {
         method: 'DELETE',
       });
       
@@ -116,7 +116,7 @@ export default function StaffManagement() {
 
   const handleBatchUpdate = async (action: 'add' | 'remove') => {
     try {
-      const response = await fetch('http://localhost:8000/staff/batch-update', {
+      const response = await fetch(`${API_URL}/staff/batch-update`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ action, count: batchCount }),

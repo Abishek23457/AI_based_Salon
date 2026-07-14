@@ -26,4 +26,5 @@ pandas
 openpyxl
 deepgram-sdk>=3.0.0
 websockets>=12.0
-pyaudio
+email-validator
+python-multipart

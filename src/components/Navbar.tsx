@@ -27,11 +27,10 @@ export default function Navbar() {
           >
             <Link to="/" className="flex items-center gap-3 group">
               <motion.div
-                whileHover={{ rotate: 180 }}
-                transition={{ duration: 0.6 }}
-                className="w-10 h-10 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-xl flex items-center justify-center shadow-lg"
+                whileHover={{ scale: 1.1 }}
+                className="w-10 h-10 bg-white rounded-xl flex items-center justify-center shadow-md overflow-hidden"
               >
-                <Sparkles className="w-5 h-5 text-white" />
+                <img src="/favicon.png" alt="Logo" className="w-8 h-8 object-contain" />
               </motion.div>
               <div className="flex flex-col">
                 <span className="font-serif text-2xl font-bold text-gray-900 tracking-tight group-hover:text-emerald-600 transition-colors">

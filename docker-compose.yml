@@ -32,10 +32,12 @@ services:
       - ./backend/vector_indexes:/app/vector_indexes
 
   frontend:
-    build: ./frontend
+    build:
+      context: .
+      dockerfile: Dockerfile
     container_name: booksmart_frontend
     ports:
-      - "3000:3000"
+      - "3000:80"
     depends_on:
       - backend
 
